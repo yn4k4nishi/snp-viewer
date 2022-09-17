@@ -3,27 +3,25 @@ import { render } from "react-dom";
 import './index.css';
 
 const App = () => {
-  const [files, setFiles] = useState<File[]>([]);
+  const [result, setResult] = useState()
 
   const onFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFiles([...files, ...event.target.files]);
+    let reader = new FileReader();
+    let file = event.target.files[0];
+    
+    reader.onload = () => {
+      console.log(reader.result?.toString().split('\n'))
+
+      setResult(reader.result?.toString().split('\n'))
+    }
+
+    reader.readAsText(file)
   };
 
   return (
     <div>
       <input type="file" accept=".s*p" onChange={onFileInputChange} />
-      <table>
-        <tbody>
-            {files.map(file => (
-              <tr>
-                <td>{file.name}</td>
-                <td>{file.type}</td>
-                <td>{file.size}</td>
-                <td>{file.lastModified}</td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <p>{result}</p>
     </div>
   );
 }
