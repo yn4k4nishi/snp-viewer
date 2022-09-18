@@ -18,6 +18,7 @@ const LabelList = (num: Number) => {
 
 const colors = ['red', 'blue', 'green', 'orange']
 
+
 const PlotComponent = (props: any) => {
   let labels = LabelList(props.port_n);
 
@@ -53,6 +54,25 @@ const PlotComponent = (props: any) => {
   );
 };
 
+const convert2DB = (form:string, array:any[]) => {
+  let n = (array[0].length-2)/2;
+  let m = Array(n).fill(1).map((n,i) => n+i*2);
+
+  if (form === 'RI'){
+    return array.map((j) => {
+      m.map((k) => {
+        let mag   = Math.sqrt(j[k]*j[k] + j[k+1]*j[k+1] )
+        let angle = Math.atan2(j[k+1], j[k])
+        j[k]   = 20 * Math.log10(mag)
+        j[k+1] = angle * 180 / Math.PI
+      })
+      return j;
+    });
+  }
+
+  return array
+}
+
 const App = () => {
   const [port_n, setPortN] = useState(2)
   const [unit,   setUnit ] = useState('GHz')
@@ -67,7 +87,8 @@ const App = () => {
     let reader = new FileReader();
     let file = event.target.files[0];
 
-    
+    let format = '';
+
     reader.onload = () => {
       let array = new Array();
       let a = reader.result?.toString().split('\n');
@@ -79,6 +100,8 @@ const App = () => {
           setParam(p[2])
           setForm(p[3])
           setR(Number(p[5]))
+          
+          format = p[3]
         } 
         else if (s[0] !== '!' ){
           if (s.split(' ').filter(String).length >= 2){
@@ -90,6 +113,9 @@ const App = () => {
 
         return s
       })
+      
+      // convert fromat RI to DB
+      array = convert2DB(format, array);
 
       // tanspose 2D array
       array = array[0].map((col:any, i:any) => array.map(row => row[i]));
