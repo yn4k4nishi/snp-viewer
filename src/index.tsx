@@ -36,10 +36,6 @@ const App = () => {
         return s
       })
 
-      console.log(data);
-
-      // setResult(reader.result?.toString().split('\n'));
-
     }
 
     reader.readAsText(file)
