@@ -7,11 +7,11 @@ const App = () => {
   const [param, setParam] = useState('S')
   const [form,  setForm ] = useState('DB')
   const [R,     setR    ] = useState(50)
-
-  const [result, setResult] = useState()
   
   
   const onFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files === null) return;
+
     let reader = new FileReader();
     let file = event.target.files[0];
     let data = new Array();
@@ -28,17 +28,17 @@ const App = () => {
           setForm(p[3])
           setR(Number(p[5]))
         } 
-
-        if (s[0] !== '!'){
-          data = [...data, s.split(' ').filter(String).map(i=>Number(i))]
+        else if (s[0] !== '!'){
+          if (s.split(' ').filter(String).length !== 0)
+            data = [...data, s.split(' ').filter(String).map(i=>Number(i))]
         }
 
         return s
       })
 
-      console.log(data)
+      console.log(data);
 
-      setResult(reader.result?.toString().split('\n'));
+      // setResult(reader.result?.toString().split('\n'));
 
     }
 
@@ -47,14 +47,13 @@ const App = () => {
 
   return (
     <div>
+      <input type="file" accept=".s*p" onChange={onFileInputChange} />
       <ul>
         <li>frequency unit : {unit}</li>
         <li>parameter type : {param}</li>
         <li>format         : {form}</li>
         <li>port resistance: {R}</li>
       </ul>
-      <input type="file" accept=".s*p" onChange={onFileInputChange} />
-      <p>{result}</p>
     </div>
   );
 }
