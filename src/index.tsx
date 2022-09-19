@@ -173,14 +173,18 @@ const App = () => {
   return (
     <div>
       <h1 className="center"> Touch Stone File Viewer </h1>
-      <input type="file" accept=".s*p" onChange={onFileInputChange} />
-      <ul>
-        <li>port number    : {port_n}</li>
-        <li>frequency unit : {unit}</li>
-        <li>parameter type : {param}</li>
-        <li>format         : {form}</li>
-        <li>port resistance: {R}</li>
-      </ul>
+      <div className="center">
+        <input type="file" accept=".s*p" onChange={onFileInputChange}/>
+      </div>
+      {/* <div className="center">
+        <ul>
+          <li>port number    : {port_n}</li>
+          <li>frequency unit : {unit}</li>
+          <li>parameter type : {param}</li>
+          <li>format         : {form}</li>
+          <li>port resistance: {R}</li>
+        </ul>
+      </div> */}
       <div className="center">
         <PlotComponent port_n={port_n} param={param} unit={unit} data={data} xmin={fmin} xmax={fmax} ymin={ymin} ymax={ymax} />
         <table>
