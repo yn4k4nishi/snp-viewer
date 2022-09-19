@@ -16,7 +16,7 @@ const LabelList = (num: Number) => {
   return ([] as string[]).concat(...b);
 }
 
-const colors = ['red', 'blue', 'green', 'orange']
+const colors = ['green', 'blue', 'red', 'orange']
 
 
 const PlotComponent = (props: any) => {
@@ -88,6 +88,7 @@ const App = () => {
     let file = event.target.files[0];
 
     let format = '';
+    let funit  = '';
 
     reader.onload = () => {
       let array = new Array();
@@ -101,6 +102,7 @@ const App = () => {
           setForm(p[3])
           setR(Number(p[5]))
           
+          funit  = p[1]
           format = p[3]
         } 
         else if (s[0] !== '!' ){
@@ -117,8 +119,19 @@ const App = () => {
       // convert fromat RI to DB
       array = convert2DB(format, array);
 
+      
       // tanspose 2D array
       array = array[0].map((col:any, i:any) => array.map(row => row[i]));
+      
+      // convert Frequency unit to GHz
+      if (funit === 'HZ'){
+        console.log(array)
+        array[0] = array[0].map((f:number) => f/1e9)
+        setUnit('GHz')
+      } else if (funit === 'GHZ'){
+        setUnit('GHz');
+      }
+      
       setData(array);
 
       setPortN(Math.sqrt((Number(array.length)-2)/2))
@@ -131,6 +144,7 @@ const App = () => {
 
   return (
     <div>
+      <h1 className="center"> Touch Stone File Viewer </h1>
       <input type="file" accept=".s*p" onChange={onFileInputChange} />
       <ul>
         <li>port number    : {port_n}</li>
@@ -139,7 +153,9 @@ const App = () => {
         <li>format         : {form}</li>
         <li>port resistance: {R}</li>
       </ul>
-      <PlotComponent port_n={port_n} param={param} unit={unit} data={data} />
+      <div className="center">
+        <PlotComponent port_n={port_n} param={param} unit={unit} data={data} />
+      </div>
     </div>
   );
 }
