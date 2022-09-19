@@ -4,6 +4,8 @@ import Plot from 'react-plotly.js';
 
 import './index.css';
 
+const colors = ['green', 'blue', 'red', 'orange']
+const styles = ['dash', 'solid', 'solid', 'dash']
 
 const LabelList = (num: Number) => {
   let a = new Array(num).fill(1).map((n:any, i:any) => n + i);
@@ -16,8 +18,21 @@ const LabelList = (num: Number) => {
   return ([] as string[]).concat(...b);
 }
 
-const colors = ['green', 'blue', 'red', 'orange']
-
+// const LineProp = () => {
+//   return (
+//     <table>
+//       <thead>
+//         <tr>
+//           <th> show </th>
+//           <th> Label </th>
+//           <th> line color </th>
+//           <th> line width </th>
+//           <th> line style </th>
+//         </tr>
+//       </thead>
+//     </table>
+//   )
+// }
 
 const PlotComponent = (props: any) => {
   let labels = LabelList(props.port_n);
@@ -32,9 +47,12 @@ const PlotComponent = (props: any) => {
       type: 'scatter',
       mode: 'lines',
       marker: { color: colors[i] },
-      name: labels[i]
+      name: labels[i],
+      line: {dash:styles[i], width: 3}
     }
     plot_data = [...plot_data, prop];
+    
+    return i;
   });
 
   return (
@@ -45,8 +63,8 @@ const PlotComponent = (props: any) => {
         width: 750, 
         height: 500, 
         title: props.param + ' parameter',
-        xaxis:{title:'Frequency (' + props.unit + ')', showgrid:true, zeroline:false, showline:true, showspikes:true},
-        yaxis:{title:'Magnitude (dB)', showgrid:true, zeroline:false, showline:true},
+        xaxis:{title:'Frequency (' + props.unit + ')', showgrid:true, zeroline:false, showline:true, showspikes:true, range:[props.xmin, props.xmax]},
+        yaxis:{title:'Magnitude (dB)', showgrid:true, zeroline:false, showline:true, range:[props.ymin, props.ymax]},
         showlegend:true,
       }}
       />
@@ -63,8 +81,11 @@ const convert2DB = (form:string, array:any[]) => {
       m.map((k) => {
         let mag   = Math.sqrt(j[k]*j[k] + j[k+1]*j[k+1] )
         let angle = Math.atan2(j[k+1], j[k])
+
         j[k]   = 20 * Math.log10(mag)
         j[k+1] = angle * 180 / Math.PI
+
+        return k;
       })
       return j;
     });
@@ -80,6 +101,11 @@ const App = () => {
   const [form,   setForm ] = useState('DB')
   const [R,      setR    ] = useState(50)
   const [data,   setData ] = useState([] as any[])
+
+  const [fmin, setFmin] = useState('1')
+  const [fmax, setFmax] = useState('10')
+  const [ymin, setYmin] = useState('-30')
+  const [ymax, setYmax] = useState('0')
   
   const onFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files === null) return;
@@ -91,7 +117,7 @@ const App = () => {
     let funit  = '';
 
     reader.onload = () => {
-      let array = new Array();
+      let array = [] as any[];
       let a = reader.result?.toString().split('\n');
 
       a?.map((s) => {
@@ -108,7 +134,7 @@ const App = () => {
         else if (s[0] !== '!' ){
           if (s.split(' ').filter(String).length >= 2){
             let a =s.split(' ').filter(String).map(i=>Number(i));
-            if (a.length === 0) return;
+            if (a.length === 0) return s;
             array = [...array, a]
           }
         }
@@ -118,7 +144,6 @@ const App = () => {
       
       // convert fromat RI to DB
       array = convert2DB(format, array);
-
       
       // tanspose 2D array
       array = array[0].map((col:any, i:any) => array.map(row => row[i]));
@@ -131,6 +156,9 @@ const App = () => {
       } else if (funit === 'GHZ'){
         setUnit('GHz');
       }
+
+      setFmin(array[0][0])
+      setFmax(array[0].slice(-1)[0])
       
       setData(array);
 
@@ -154,7 +182,41 @@ const App = () => {
         <li>port resistance: {R}</li>
       </ul>
       <div className="center">
-        <PlotComponent port_n={port_n} param={param} unit={unit} data={data} />
+        <PlotComponent port_n={port_n} param={param} unit={unit} data={data} xmin={fmin} xmax={fmax} ymin={ymin} ymax={ymax} />
+        <table>
+          <thead>
+            <tr>
+              <th> property </th>
+              <th> value </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td> frequency start </td>
+              <td>
+                <input type="text" inputMode="numeric" value={fmin} onChange={(e) => setFmin(e.target.value)}></input>
+              </td>
+            </tr>
+            <tr>
+              <td> frequency stop </td>
+              <td>
+                <input type="text" inputMode="numeric" value={fmax} onChange={(e) => setFmax(e.target.value)}></input>
+              </td>
+            </tr>
+            <tr>
+              <td> y max </td>
+              <td>
+                <input type="text" inputMode="numeric" value={ymax} onChange={(e) => setYmax(e.target.value)}></input>
+              </td>
+            </tr>
+            <tr>
+              <td> y min </td>
+              <td>
+                <input type="text" inputMode="numeric" value={ymin} onChange={(e) => setYmin(e.target.value)}></input>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );

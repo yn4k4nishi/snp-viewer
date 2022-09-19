@@ -1,5 +1,5 @@
 body {
-  font: 14px "Times New Roman", Futura, sans-serif;
+  font: 18px "Times", Futura, sans-serif;
   margin: 20px;
 }
 
@@ -11,4 +11,15 @@ ol, ul {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+th,td {
+  border: solid 1px;
+  padding: 10px;
+}
+
+table {
+  font-family: math;
+  font-size: 12px;
+  border-collapse:  collapse;
 }
