@@ -223,6 +223,9 @@ const App = () => {
           </tbody>
         </table>
       </div>
+      <div className="center">
+        <a href="https://github.com/yn4k4nishi/snp-viewer"> source code in GitHub. </a>
+      </div>
     </div>
   );
 }
