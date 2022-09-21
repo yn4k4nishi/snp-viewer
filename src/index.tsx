@@ -73,8 +73,9 @@ const PlotComponent = (props: any) => {
 };
 
 const convert2DB = (form:string, array:any[]) => {
-  let n = (array[0].length-2)/2;
+  let n = (array[0].length-1)/2;
   let m = Array(n).fill(1).map((n,i) => n+i*2);
+
 
   if (form === 'RI'){
     return array.map((j) => {
@@ -118,7 +119,7 @@ const App = () => {
 
     reader.onload = () => {
       let array = [] as any[];
-      let a = reader.result?.toString().split('\n');
+      let a = reader.result?.toString().replace(/\r/g, ' ').split('\n');
 
       a?.map((s) => {
         if (s[0] === '#'){
@@ -142,6 +143,7 @@ const App = () => {
         return s
       })
       
+      console.log(array)
       // convert fromat RI to DB
       array = convert2DB(format, array);
       
@@ -149,8 +151,7 @@ const App = () => {
       array = array[0].map((col:any, i:any) => array.map(row => row[i]));
       
       // convert Frequency unit to GHz
-      if (funit === 'HZ'){
-        console.log(array)
+      if (funit === 'HZ' || funit === 'Hz'){
         array[0] = array[0].map((f:number) => f/1e9)
         setUnit('GHz')
       } else if (funit === 'GHZ'){
@@ -162,7 +163,7 @@ const App = () => {
       
       setData(array);
 
-      setPortN(Math.sqrt((Number(array.length)-2)/2))
+      setPortN(Math.sqrt((Number(array.length)-1)/2))
 
     }
 
