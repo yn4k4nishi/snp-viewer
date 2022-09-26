@@ -4,7 +4,7 @@ import Plot from 'react-plotly.js';
 
 import './index.css';
 
-const colors = ['green', 'blue', 'red', 'orange']
+const colors = ['green', 'blue', 'red', 'yellow']
 const styles = ['dash', 'solid', 'solid', 'dash']
 
 const LabelList = (num: Number) => {
