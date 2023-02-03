@@ -18,22 +18,6 @@ const LabelList = (num: Number) => {
   return ([] as string[]).concat(...b);
 }
 
-// const LineProp = () => {
-//   return (
-//     <table>
-//       <thead>
-//         <tr>
-//           <th> show </th>
-//           <th> Label </th>
-//           <th> line color </th>
-//           <th> line width </th>
-//           <th> line style </th>
-//         </tr>
-//       </thead>
-//     </table>
-//   )
-// }
-
 const PlotComponent = (props: any) => {
   let labels = LabelList(props.port_n);
 
@@ -65,6 +49,45 @@ const PlotComponent = (props: any) => {
         title: props.param + ' parameter',
         xaxis:{title:'Frequency (' + props.unit + ')', showgrid:true, zeroline:false, showline:true, showspikes:true, range:[props.xmin, props.xmax]},
         yaxis:{title:'Magnitude (dB)', showgrid:true, zeroline:false, showline:true, range:[props.ymin, props.ymax]},
+        showlegend:true,
+      }}
+      />
+    </div>
+  );
+};
+
+const PlotComponent2 = (props: any) => {
+  const labels = ['beta+', 'beta-']
+  let a = new Array(props.port_n).fill(0).map((n,i) => (n + i));
+  
+  let plot_data = [] as any[];
+  a.map((i) => {
+    let prop = {
+      x: props.data[2*i+2],
+      y: props.data[0],
+      type: 'scatter',
+      mode: 'lines',
+      marker: { color: colors[i+1] },
+      name: labels[i],
+      line: {dash:'solid', width: 3}
+    }
+    plot_data = [...plot_data, prop];
+    
+    return i;
+  });
+  
+  console.log(plot_data)
+  
+  return (
+    <div>
+      <Plot
+      data={plot_data}
+      layout={{ 
+        width: 500, 
+        height: 500, 
+        title: props.param + ' parameter',
+        xaxis:{title:'beta p /pi', showgrid:true, zeroline:false, showline:true }, //, range:[props.xmin, props.xmax]},
+        yaxis:{title:'Frequency (' + props.unit + ')', showgrid:true, zeroline:false, showline:true, showspikes:true, range:[props.ymin, props.ymax]},
         showlegend:true,
       }}
       />
@@ -111,17 +134,21 @@ const convert2DB = (form:string, array:any[]) => {
 }
 
 const App = () => {
-  const [port_n, setPortN] = useState(2)
-  const [unit,   setUnit ] = useState('GHz')
-  const [param,  setParam] = useState('S')
-  const [form,   setForm ] = useState('DB')
-  const [R,      setR    ] = useState(50)
-  const [data,   setData ] = useState([] as any[])
+  const [port_n,    setPortN   ] = useState(2)
+  const [unit,      setUnit    ] = useState('GHz')
+  const [param,     setParam   ] = useState('S')
+  const [form,      setForm    ] = useState('DB')
+  const [R,         setR       ] = useState(50)
+  const [data,      setData    ] = useState([] as any[])
+  const [port_data, setPortData] = useState([] as any[])
 
   const [fmin, setFmin] = useState('1')
   const [fmax, setFmax] = useState('10')
   const [ymin, setYmin] = useState('-30')
   const [ymax, setYmax] = useState('0')
+
+  const [cell_n, setCellN] = useState('9')
+  const [cell_p, setCellP] = useState('6.6')
   
   const onFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files === null) return;
@@ -158,8 +185,8 @@ const App = () => {
         return s
       })
       
-      console.log(array)
-      console.log(form)
+      // console.log(array)
+      // console.log(form)
     
       // convert fromat RI to DB
       array = convert2DB(format, array);
@@ -188,21 +215,63 @@ const App = () => {
 
   };
 
+  const onPortFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files === null) return;
+
+    let reader = new FileReader();
+    let file = event.target.files[0];
+
+    let format = '';
+    let funit  = '';
+
+    reader.onload = () => {
+      let array = [] as any[];
+      let a = reader.result?.toString().replace(/\r/g, ' ').split('\n');
+
+      a?.map((s) => {
+        if (s[0] === '#'){
+          let p = s.split(' ').filter(String)
+          funit  = p[1]
+          format = p[3]
+        } 
+        else if (s[0] !== '!' ){
+          if (s.split(' ').filter(String).length >= 2){
+            let a =s.split(' ').filter(String).map(i=>Number(i));
+            if (a.length === 0) return s;
+            array = [...array, a]
+          }
+        }
+
+        return s
+      })
+      
+      // console.log(array)
+      // console.log(form)
+    
+      // convert fromat RI to DB
+      array = convert2DB(format, array);
+      
+      // tanspose 2D array
+      array = array[0].map((col:any, i:any) => array.map(row => row[i]));
+      
+      // convert Frequency unit to GHz
+      if (funit === 'HZ' || funit === 'Hz'){
+        array[0] = array[0].map((f:number) => f/1e9)
+      }
+
+      setPortData(array);
+    }
+
+    reader.readAsText(file)
+
+  };
+
   return (
     <div>
       <h1 className="center"> Touch Stone File Viewer </h1>
       <div className="center">
         <input type="file" accept=".s*p" onChange={onFileInputChange}/>
       </div>
-      {/* <div className="center">
-        <ul>
-          <li>port number    : {port_n}</li>
-          <li>frequency unit : {unit}</li>
-          <li>parameter type : {param}</li>
-          <li>format         : {form}</li>
-          <li>port resistance: {R}</li>
-        </ul>
-      </div> */}
       <div className="center">
         <PlotComponent port_n={port_n} param={param} unit={unit} data={data} xmin={fmin} xmax={fmax} ymin={ymin} ymax={ymax} />
         <table>
@@ -235,6 +304,37 @@ const App = () => {
               <td> y min </td>
               <td>
                 <input type="text" inputMode="numeric" value={ymin} onChange={(e) => setYmin(e.target.value)}></input>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div className="center">
+        <PlotComponent2 port_n={port_n} param={param} unit={unit} data={data} ymin={fmin} ymax={fmax} xmin={-0.4} xmax={0.4} />
+        <table>
+          <thead>
+            <tr>
+              <th> property </th>
+              <th> value </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td> port data </td>
+              <td>
+                <input type="file" accept=".s*p" onChange={onPortFileInputChange}/>
+              </td>
+            </tr>
+            <tr>
+              <td> cell number </td>
+              <td>
+                <input type="text" inputMode="numeric" value={cell_n} onChange={(e) => setCellN(e.target.value)}></input>
+              </td>
+            </tr>
+            <tr>
+              <td> periodic (mm) </td>
+              <td>
+                <input type="text" inputMode="numeric" value={cell_p} onChange={(e) => setCellP(e.target.value)}></input>
               </td>
             </tr>
           </tbody>
