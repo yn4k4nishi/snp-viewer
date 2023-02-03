@@ -92,6 +92,21 @@ const convert2DB = (form:string, array:any[]) => {
     });
   }
 
+  if (form === 'MA'){
+    return array.map((j) => {
+      m.map((k) => {
+        let mag   = j[k]
+        let angle = j[k+1]
+
+        j[k]   = 20 * Math.log10(mag)
+        j[k+1] = angle * 180 / Math.PI
+
+        return k;
+      })
+      return j;
+    });
+  }
+
   return array
 }
 
@@ -144,6 +159,8 @@ const App = () => {
       })
       
       console.log(array)
+      console.log(form)
+    
       // convert fromat RI to DB
       array = convert2DB(format, array);
       
